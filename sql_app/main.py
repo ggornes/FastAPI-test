@@ -1,6 +1,9 @@
+import os
+import pathlib
+import shutil
 from typing import List
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
 # from . import crud, models, schemas
@@ -58,3 +61,18 @@ def create_weight_record_for_user(
 def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     weight_records = crud.get_weight_records(db, skip=skip, limit=limit)
     return weight_records
+
+@app.post("/uploadfile/")
+async def save_upload_file(file: UploadFile = File(...)):
+    # global upload_folder
+    file_object = file.file
+    # Create empty file to copy the file_object to
+    if not os.path.exists(os.path.join(pathlib.Path().absolute() / 'uploads')):
+        os.makedirs(os.path.join(pathlib.Path().absolute() / 'uploads'))
+    upload_folder = open(os.path.join(pathlib.Path().absolute() / 'uploads', file.filename), 'wb+')
+    shutil.copyfileobj(file_object, upload_folder)
+    upload_folder.close()
+    # await file.write(file.filename)
+    # print(content)
+    # extension = os.path.splitext(file.filename[1] _, path)
+    return {"filename": file.filename}
