@@ -1,3 +1,5 @@
+from datetime import datetime
+import hashlib
 import os
 import pathlib
 import shutil
@@ -64,15 +66,27 @@ def read_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 
 @app.post("/uploadfile/")
 async def save_upload_file(file: UploadFile = File(...)):
+    """ file: uploaded file
+        :returns new_filename
+    """
+    file_name = os.path.splitext(file.filename)[0]
+    file_extension = os.path.splitext(file.filename)[1]
+    # new_filename = str(user_id) + ' - ' + file.filename + ' - ' + str(datetime.now())
+    temp_filename = file_name + ' - ' + str(datetime.now())
+    hashed_filename = hashlib.md5(temp_filename.encode())
+    new_name = hashed_filename.hexdigest() + str(file_extension)
+    print(temp_filename)
+    print(new_name)
+
     # global upload_folder
     file_object = file.file
     # Create empty file to copy the file_object to
     if not os.path.exists(os.path.join(pathlib.Path().absolute() / 'uploads')):
         os.makedirs(os.path.join(pathlib.Path().absolute() / 'uploads'))
-    upload_folder = open(os.path.join(pathlib.Path().absolute() / 'uploads', file.filename), 'wb+')
+    upload_folder = open(os.path.join(pathlib.Path().absolute() / 'uploads', new_name), 'wb+')
     shutil.copyfileobj(file_object, upload_folder)
     upload_folder.close()
     # await file.write(file.filename)
     # print(content)
     # extension = os.path.splitext(file.filename[1] _, path)
-    return {"filename": file.filename}
+    return {"filename": new_name}
