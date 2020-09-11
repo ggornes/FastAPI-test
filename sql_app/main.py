@@ -9,10 +9,7 @@ import boto3
 from fastapi import Depends, FastAPI, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 
-# from . import crud, models, schemas
-from . import schemas
-from . import models
-from . import crud
+from . import crud, models, schemas
 
 
 from .database import SessionLocal, engine
@@ -36,6 +33,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@app.get("/")
+async def read_main():
+    return {"msg": "Hello World"}
 
 
 @app.post("/users/", response_model=schemas.User)
